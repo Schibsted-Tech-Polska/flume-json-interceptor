@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pl.schibsted.flume</groupId>
+    <artifactId>flume-json-interceptor</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Flume JSON Interceptor Plugin</name>
+    <description>Flume JSON Interceptor Plugin</description>
+    <inceptionYear>2015</inceptionYear>
+    <properties>
+        <flume.version>1.5.2</flume.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Compiler options -->
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.source>1.6</maven.compiler.source>
+
+        <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+        <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
+    </properties>
+
+    <scm>
+        <url>scm:git:https://github.com/wojtekk/flume-json-interceptor.git</url>
+        <developerConnection>scm:git:https://github.com/wojtekk/flume-json-interceptor.git</developerConnection>
+        <connection>scm:git:https://github.com/wojtekk/flume-json-interceptor.git</connection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/wojtekk/flume-json-interceptor/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Schibsted Tech Polska</name>
+        <url>http://www.schibsted.pl/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Wojciech Krawczyk</name>
+            <email>wojtekk@gmail.com</email>
+            <organization>Schibsted Tech Polska</organization>
+        </developer>
+    </developers>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.flume</groupId>
+                <artifactId>flume-parent</artifactId>
+                <version>${flume.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.flume</groupId>
+            <artifactId>flume-ng-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+    </dependencies>
+
+</project>
+
+
+
+
+
+
+
+
