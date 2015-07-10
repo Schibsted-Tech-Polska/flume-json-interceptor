@@ -17,6 +17,7 @@ package pl.schibsted.flume.interceptor.json;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.base.Charsets;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Context;
@@ -30,8 +31,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.CONFIG_SERIALIZERS;
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.CONFIG_HEADER_NAME;
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.CONFIG_HEADER_JSONPATH;
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.DEFAULT_SERIALIZER;
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.CONFIG_SERIALIZER_TYPE;
+import static pl.schibsted.flume.interceptor.json.JsonInterceptor.Constants.CONFIG_SERIALIZER_NAME;
+
 public class JsonInterceptor implements Interceptor {
-    static final String SERIALIZERS = "serializers";
     private static final Logger logger =
             LoggerFactory.getLogger(JsonInterceptor.class);
 
@@ -53,7 +60,7 @@ public class JsonInterceptor implements Interceptor {
     public Event intercept(Event event) {
         try {
 
-            String body = new String(event.getBody());
+            String body = new String(event.getBody(), Charsets.UTF_8);
             Map<String, String> headers = event.getHeaders();
             String value = JsonPath.read(body, headerJSONPath);
             headers.put(headerName, serializer.serialize(value));
@@ -95,14 +102,21 @@ public class JsonInterceptor implements Interceptor {
 
         @Override
         public void configure(Context context) {
-            headerName = context.getString("name");
-            headerJSONPath = context.getString("jsonpath");
+            headerName = context.getString(CONFIG_HEADER_NAME);
+            headerJSONPath = context.getString(CONFIG_HEADER_JSONPATH);
 
             configureSerializers(context);
         }
 
+        @Override
+        public JsonInterceptor build() {
+            Preconditions.checkArgument(headerName != null, "Header name was misconfigured");
+            Preconditions.checkArgument(headerJSONPath != null, "Header JSONPath was misconfigured");
+            return new JsonInterceptor(headerName, headerJSONPath, serializer);
+        }
+
         private void configureSerializers(Context context) {
-            String serializerListStr = context.getString(SERIALIZERS);
+            String serializerListStr = context.getString(CONFIG_SERIALIZERS);
             if (StringUtils.isEmpty(serializerListStr)) {
                 serializer = defaultSerializer;
                 return;
@@ -113,14 +127,15 @@ public class JsonInterceptor implements Interceptor {
                 logger.warn("Only one serializer is supported.");
             }
             String serializerName = serializerNames[0];
-            Context serializerContexts = new Context(context.getSubProperties(SERIALIZERS + "."));
+
+            Context serializerContexts = new Context(context.getSubProperties(CONFIG_SERIALIZERS + "."));
             Context serializerContext = new Context(serializerContexts.getSubProperties(serializerName + "."));
 
-            String type = serializerContext.getString("type", "DEFAULT");
-            String name = serializerContext.getString("name");
+            String type = serializerContext.getString(CONFIG_SERIALIZER_TYPE, DEFAULT_SERIALIZER);
+            String name = serializerContext.getString(CONFIG_SERIALIZER_NAME);
 
             Preconditions.checkArgument(!StringUtils.isEmpty(name), "Supplied name cannot be empty.");
-            if ("DEFAULT".equals(type)) {
+            if (DEFAULT_SERIALIZER.equals(type)) {
                 serializer = defaultSerializer;
             } else {
                 serializer = getCustomSerializer(type, serializerContext);
@@ -140,12 +155,16 @@ public class JsonInterceptor implements Interceptor {
             }
             return defaultSerializer;
         }
+    }
 
-        @Override
-        public JsonInterceptor build() {
-            Preconditions.checkArgument(headerName != null, "Header name was misconfigured");
-            Preconditions.checkArgument(headerJSONPath != null, "Header JSONPath was misconfigured");
-            return new JsonInterceptor(headerName, headerJSONPath, serializer);
-        }
+
+    public static class Constants {
+
+        public static final String CONFIG_SERIALIZERS = "serializers";
+        public static final String DEFAULT_SERIALIZER = "DEFAULT";
+        public static final String CONFIG_HEADER_NAME = "name";
+        public static final String CONFIG_HEADER_JSONPATH = "jsonpath";
+        public static final String CONFIG_SERIALIZER_TYPE = "type";
+        public static final String CONFIG_SERIALIZER_NAME = "name";
     }
 }
