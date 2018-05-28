@@ -18,7 +18,7 @@ package pl.schibsted.flume.interceptor.json;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.base.Charsets;
-import com.jayway.jsonpath.JsonPath;
+import com.nebhale.jsonpath.JsonPath;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -62,17 +62,16 @@ public class JsonInterceptor implements Interceptor {
 
             String body = new String(event.getBody(), Charsets.UTF_8);
             Map<String, String> headers = event.getHeaders();
-            String value = JsonPath.read(body, headerJSONPath);
+            //String value = JsonPath.read(body, headerJSONPath);
+            JsonPath namePath = JsonPath.compile(headerJSONPath);
+            String value  = namePath.read(body,String.class);
             headers.put(headerName, serializer.serialize(value));
 
-        } catch (com.jayway.jsonpath.PathNotFoundException e) {
-            logger.warn("Skipping event due to: PathNotFoundException.", e);
-        } catch (com.jayway.jsonpath.InvalidJsonException e) {
-            logger.warn("Skipping event due to: InvalidJsonException.", e);
         } catch (java.lang.ClassCastException e) {
             logger.warn("Skipping event due to: ClassCastException.", e);
         } catch (Exception e) {
             logger.warn("Skipping event due to: unknown error.", e);
+            e.printStackTrace();
         }
         return event;
     }
