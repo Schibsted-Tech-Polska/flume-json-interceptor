@@ -65,7 +65,9 @@ public class JsonInterceptor implements Interceptor {
             //String value = JsonPath.read(body, headerJSONPath);
             JsonPath namePath = JsonPath.compile(headerJSONPath);
             String value  = namePath.read(body,String.class);
-            headers.put(headerName, serializer.serialize(value));
+            if (value != null) {
+                headers.put(headerName, serializer.serialize(value));
+            }
 
         } catch (java.lang.ClassCastException e) {
             logger.warn("Skipping event due to: ClassCastException.", e);

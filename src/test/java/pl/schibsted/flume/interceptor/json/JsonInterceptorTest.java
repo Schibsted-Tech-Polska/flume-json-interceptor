@@ -251,4 +251,39 @@ public class JsonInterceptorTest {
                 interceptedEvent.getHeaders().get(headerName));
     }
 
+    @Test
+    public void testDateTimeFormatSerializer() {
+
+        String headerName = "testName";
+        String headerJSONPath = "$.published";
+
+        Map<String, String> headers = new HashMap<String, String>(1);
+        headers.put("existingKey", "existingValue");
+
+        String body = getDefaultEventBody();
+        Event event = getEvent(headers, body);
+
+        Context context = getDefaultContext(headerName, headerJSONPath);
+        context.put("serializers.s1.type", "pl.schibsted.flume.interceptor.json.JsonInterceptorDateTimeFormatSerializer");
+        context.put("serializers.s1.inputpattern", "yyyy-MM-dd'T'HH:mm:ssZ");
+        context.put("serializers.s1.outputpattern", "yyyy-MM-dd HH:mm:ss");
+
+        JsonInterceptor interceptor = getInterceptor(context);
+
+        Event interceptedEvent = interceptor.intercept(event);
+
+        assertEquals("Event body should not have been altered",
+                body,
+                new String(interceptedEvent.getBody()));
+
+        assertTrue("Header should now contain " + headerName,
+                interceptedEvent.getHeaders().containsKey(headerName));
+
+        String published = "2015-04-22 20:37:09"; // => 2015-04-23T01:37:09+00:00
+
+        assertEquals("Header's " + headerName + " should be correct",
+                published,
+                interceptedEvent.getHeaders().get(headerName));
+    }
+
 }
