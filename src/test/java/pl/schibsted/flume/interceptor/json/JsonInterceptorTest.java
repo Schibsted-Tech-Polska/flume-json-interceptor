@@ -50,6 +50,7 @@ public class JsonInterceptorTest {
         return "{ " +
                 "\"pageViewId\":\"4eae0122-052d-41ff-ac5c-120279891184\"," +
                 "\"published\":\"2015-04-23T01:37:09+00:00\"," +
+                "\"finished\":\"1429753029000\"," +
                 "\"params\": {" +
                 "\"v1\":\"1\"," +
                 "\"v2\":\"2\"," +
@@ -283,6 +284,39 @@ public class JsonInterceptorTest {
 
         assertEquals("Header's " + headerName + " should be correct",
                 published,
+                interceptedEvent.getHeaders().get(headerName));
+    }
+
+    @Test
+    public void testMillisecondFormatSerializer(){
+        String headerName = "testName";
+        String headerJSONPath = "$.finished";
+
+        Map<String, String> headers = new HashMap<String, String>(1);
+        headers.put("existingKey", "existingValue");
+
+        String body = getDefaultEventBody();
+        Event event = getEvent(headers, body);
+
+        Context context = getDefaultContext(headerName, headerJSONPath);
+        context.put("serializers.s1.type", "pl.schibsted.flume.interceptor.json.JsonInterceptorMillisecondFormatSerializer");
+        context.put("serializers.s1.outputpattern", "yyyy-MM-dd HH:mm:ss");
+
+        JsonInterceptor interceptor = getInterceptor(context);
+
+        Event interceptedEvent = interceptor.intercept(event);
+
+        assertEquals("Event body should not have been altered",
+                body,
+                new String(interceptedEvent.getBody()));
+
+        assertTrue("Header should now contain " + headerName,
+                interceptedEvent.getHeaders().containsKey(headerName));
+
+        String finished = "2015-04-23 09:37:09";
+
+        assertEquals("Header's " + headerName + " should be correct",
+                finished,
                 interceptedEvent.getHeaders().get(headerName));
     }
 
